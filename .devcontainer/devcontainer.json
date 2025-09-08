@@ -1,8 +1,6 @@
 {
-	"dockerComposeFile": [
-		"docker-compose.yml"
-	],
-	"service": "dev",
+	"name": "Demo",
+	"image": "mcr.microsoft.com/devcontainers/dotnet:dev-10.0-preview-noble",
 	"forwardPorts": [
 		3000,
 		5137
@@ -21,14 +19,16 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
+				"ms-azuretools.azure-dev",
+        		"microsoft-aspire.aspire-vscode",
 				"ms-azuretools.vscode-docker",
-				"GitHub.copilot",
 				"GitHub.copilot",
 				"ms-vscode.extension-test-runner",
 				"vitest.explorer",
 				"ms-vscode.vscode-speech",
 				"Blodwynn.featurehighlight",
-				"ms-dotnettools.csharp"
+				"ms-dotnettools.csharp",
+				"ms-dotnettools.csdevkit"
 			],
 			"settings": {
 				"editor.inlineSuggest.experimentalInlineEditsEnabled": true,
@@ -54,5 +54,26 @@
 	"hostRequirements": {
 		"cpus": 4,
 		"memory": "8gb"
+	},
+	"remoteEnv": {
+		// When the project is built the Aspire.Cli project produces an executable which can be useful to
+		// have on the path for local testing within the devcontainer environment.
+		"PATH": "${containerEnv:PATH}:/workspaces/aspire/artifacts/bin/Aspire.Cli/Debug/net8.0/"
+	},
+	"features": {
+		"ghcr.io/devcontainers/features/azure-cli:1": {},
+		"ghcr.io/azure/azure-dev/azd:0": {},
+		"ghcr.io/devcontainers/features/docker-in-docker": {},
+		"ghcr.io/dotnet/aspire-devcontainer-feature/dotnetaspire:1": {},
+		"ghcr.io/devcontainers/features/github-cli:1": {},
+
+		"ghcr.io/devcontainers/features/node:1": {},
+		"ghcr.io/devcontainers/features/python:1": {},
+		"ghcr.io/devcontainers/features/dotnet": {
+			"additionalVersions": [
+				"8.0.403",
+				"9.0"
+			]
+		}
 	}
 }
