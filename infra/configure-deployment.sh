@@ -111,22 +111,23 @@ create_resource_group $RG_PROD $LOCATION_PROD "production"
 
 # Check if service principal already exists
 echo "🔍 Checking if service principal '$SP_NAME' already exists..."
-SP_CHECK=$(az ad sp list --filter "displayName eq '$SP_NAME'" --query "[].appId" -o tsv)
+# SP_CHECK=$(az ad sp list --filter "displayName eq '$SP_NAME'" --query "[].appId" -o tsv)
 
-if [ -z "$SP_CHECK" ]; then
-    echo "🔑 Creating new service principal '$SP_NAME'..."
-    SP_INFO=$(az ad sp create-for-rbac --name "$SP_NAME" \
-        --role contributor \
-        --scopes /subscriptions/$SUBSCRIPTION_ID \
-        --query "{clientId:appId}" -o json)
+# if [ -z "$SP_CHECK" ]; then
+#     echo "🔑 Creating new service principal '$SP_NAME'..."
+#     SP_INFO=$(az ad sp create-for-rbac --name "$SP_NAME" --skip-assignment \
+#         --role contributor \
+#         --scopes /subscriptions/$SUBSCRIPTION_ID \
+#         --query "{clientId:appId}" -o json)
     
-    CLIENT_ID=$(echo $SP_INFO | jq -r .clientId)
-    echo "✅ Service principal created with ID: $CLIENT_ID"
-else
-    echo "ℹ️ Service principal '$SP_NAME' already exists with ID: $SP_CHECK"
-    CLIENT_ID=$SP_CHECK
-fi
-
+#     CLIENT_ID=$(echo $SP_INFO | jq -r .clientId)
+#     echo "✅ Service principal created with ID: $CLIENT_ID"
+# else
+#     echo "ℹ️ Service principal '$SP_NAME' already exists with ID: $SP_CHECK"
+#     CLIENT_ID=$SP_CHECK
+# fi
+CLIENT_ID=189bd4d3-8bc3-40ff-9cea-934a93bb5323
+OBJECT_ID=0752c836-8a58-467e-8895-97439c4e8ec1
 # Create Azure Container Registry in production resource group
 # Remove hyphens and convert to lowercase for ACR name
 ACR_NAME=$(echo "${REPO_NAME}" | tr -d '-' | tr '[:upper:]' '[:lower:]')
@@ -154,39 +155,39 @@ echo "✅ Admin access enabled for Azure Container Registry '$ACR_NAME'"
 # Grant ACR access to the service principal
 echo "🔑 Granting AcrPull role to service principal for ACR..."
 az role assignment create \
-    --assignee-object-id $(az ad sp show --id $CLIENT_ID --query id -o tsv) \
+    --assignee 0752c836-8a58-467e-8895-97439c4e8ec1 \
     --assignee-principal-type ServicePrincipal \
     --role AcrPull \
-    --scope /subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG_PROD/providers/Microsoft.ContainerRegistry/registries/$ACR_NAME > /dev/null
+    --scope subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG_PROD/providers/Microsoft.ContainerRegistry/registries/$ACR_NAME > /dev/null
 
 # Assign role to specific resource groups
 echo "🔑 Assigning Contributor role to service principal for resource group '$RG_STAGING'..."
 az role assignment create \
-    --assignee-object-id $(az ad sp show --id $CLIENT_ID --query id -o tsv) \
+    --assignee 189bd4d3-8bc3-40ff-9cea-934a93bb5323 \
     --assignee-principal-type ServicePrincipal \
     --role Contributor \
-    --scope /subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG_STAGING > /dev/null
+    --scope subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG_STAGING > /dev/null
 
 echo "🔑 Assigning Contributor role to service principal for resource group '$RG_PROD'..."
 az role assignment create \
-    --assignee-object-id $(az ad sp show --id $CLIENT_ID --query id -o tsv) \
+    --assignee 189bd4d3-8bc3-40ff-9cea-934a93bb5323 \
     --assignee-principal-type ServicePrincipal \
     --role Contributor \
-    --scope /subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG_PROD > /dev/null
+    --scope subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG_PROD > /dev/null
 
 # Assign User Access Administrator role to allow role assignments
 echo "🔑 Assigning User Access Administrator role to service principal for resource groups..."
 az role assignment create \
-    --assignee-object-id $(az ad sp show --id $CLIENT_ID --query id -o tsv) \
+    --assignee 189bd4d3-8bc3-40ff-9cea-934a93bb5323 \
     --assignee-principal-type ServicePrincipal \
     --role "User Access Administrator" \
-    --scope /subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG_STAGING > /dev/null
+    --scope subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG_STAGING > /dev/null
 
 az role assignment create \
-    --assignee-object-id $(az ad sp show --id $CLIENT_ID --query id -o tsv) \
+    --assignee 189bd4d3-8bc3-40ff-9cea-934a93bb5323 \
     --assignee-principal-type ServicePrincipal \
     --role "User Access Administrator" \
-    --scope /subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG_PROD > /dev/null
+    --scope subscriptions/$SUBSCRIPTION_ID/resourceGroups/$RG_PROD > /dev/null
 
 # Function to create federated credential if it doesn't exist
 create_federated_credential() {
