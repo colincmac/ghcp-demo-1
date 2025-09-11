@@ -90,7 +90,7 @@ To showcase extended capabilities:
 - [Detailed Architecture](./docs/architecture.md)
 - [Complete Demo Script](./docs/demo-script.md)
 
-## 🎓 Pro Tips for Solution Engineers
+## 🎓 Pro Tips 
 
 - Practice the demos before customer presentations
 - Remember Copilot is non-deterministic - be ready to adapt
